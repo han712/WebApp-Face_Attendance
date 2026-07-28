@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --color-paper: #fbf7ef;
+  --color-surface: #ffffff;
+  --color-ink: #2b2a28;
+  --color-ink-muted: #756f63;
+  --color-border: #e9e2d2;
+  --color-forest: #2f6f5e;
+  --color-forest-dark: #24564a;
+  --color-marigold: #f2a65a;
+  --color-brick: #d9584b;
+  --color-sky: #4c86c6;
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-border: var(--color-border);
+  --color-forest: var(--color-forest);
+  --color-forest-dark: var(--color-forest-dark);
+  --color-marigold: var(--color-marigold);
+  --color-brick: var(--color-brick);
+  --color-sky: var(--color-sky);
+  --font-display: var(--font-plus-jakarta-sans);
+  --font-sans: var(--font-figtree);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), sans-serif;
+}
+
+/* Scrollbar hangat, senada palet -- bukan default abu-abu sistem */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}
+
+::selection {
+  background: var(--color-marigold);
+  color: var(--color-ink);
+}
+
+/* Quality floor: hormati orang yang matikan animasi di OS-nya */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
