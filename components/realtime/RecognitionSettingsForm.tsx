@@ -70,7 +70,7 @@ function Fields({
 
       <label className="block space-y-1">
         <span className="flex items-center justify-between text-sm text-ink-muted">
-          <span>match_threshold (cosine similarity)</span>
+          <span>Rentang akurasi pengenalan wajah</span>
           <span className="font-mono text-ink">{threshold.toFixed(2)}</span>
         </span>
         <input
@@ -88,8 +88,7 @@ function Fields({
         </span>
       </label>
       <p className="text-xs text-ink-muted">
-        Makin besar nilainya, makin ketat syarat wajah dianggap cocok. 
-        Semakin Kecil, Wajah bisa tidak terdeteksi
+       Atur tingkat kemiripan wajah yang diperlukan agar sistem dapat mengenali seseorang.
       </p>
       <p className="text-xs text-ink-muted">
         Default Nilai: 0.6
