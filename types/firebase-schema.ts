@@ -62,6 +62,39 @@ export interface AttendanceByStudentEntry {
 export type AttendanceByStudentNode = Record<string, AttendanceByStudentEntry>;
 
 // ---------------------------------------------------------------------
+// /attendance_pulang/{date}/{nisn}   -- date format "YYYY-MM-DD". NODE
+// BARU, cermin struktur /attendance tapi untuk absen PULANG. Ditulis
+// backend Python saat wajah dikenali setelah settings/attendance_checkout
+// .pulang_start terlampaui (lihat AttendanceCheckoutSettings di atas).
+// Sengaja dipisah dari /attendance (bukan field tambahan di record yang
+// sama) supaya siswa yang belum pulang tidak butuh "placeholder" record.
+// ---------------------------------------------------------------------
+export interface AttendanceCheckoutRecord {
+  nisn: string;
+  name: string;
+  class: string;
+  date: string; // "YYYY-MM-DD"
+  time: string; // "HH:MM:SS" -- jam wajah dikenali saat pulang
+  photo_url: string; // foto bukti absen pulang saat itu
+  recorded_at: string; // ISO8601
+}
+
+/** Bentuk node /attendance_pulang/{date} -> { [nisn]: AttendanceCheckoutRecord } */
+export type AttendanceCheckoutByDateNode = Record<string, AttendanceCheckoutRecord>;
+
+// ---------------------------------------------------------------------
+// /attendance_pulang_by_student/{nisn}/{date}   -- NODE BARU, index sama
+// polanya dengan /attendance_by_student, supaya "riwayat pulang 1 siswa"
+// (dipakai parent portal) tidak perlu scan seluruh /attendance_pulang/*.
+// ---------------------------------------------------------------------
+export interface AttendanceCheckoutByStudentEntry {
+  time: string; // "HH:MM:SS"
+}
+
+/** Bentuk node /attendance_pulang_by_student/{nisn} -> { [date]: entry } */
+export type AttendanceCheckoutByStudentNode = Record<string, AttendanceCheckoutByStudentEntry>;
+
+// ---------------------------------------------------------------------
 // /registration_sessions/{session_id}
 // Dibuat backend setelah POST /register/live-capture atau
 // /register/manual-upload. Bersifat transient/sementara.
@@ -145,6 +178,23 @@ export interface AttendanceSettings {
 }
 
 // ---------------------------------------------------------------------
+// /settings/attendance_checkout   -- WEBAPP MENULIS ke sini (halaman
+// Settings, bagian "Absen Pulang"). NODE BARU -- BELUM ADA KONTRAK DI
+// BACKEND, backend Python HARUS diupdate agar membaca node ini dan
+// mengimplementasikan logikanya (lihat catatan kontrak terpisah).
+//
+// Mekanisme yang disepakati: BERBASIS JENDELA WAKTU, otomatis tanpa aksi
+// tambahan dari siswa -- kapan pun wajah dikenali SETELAH `pulang_start`,
+// backend menulis record ke /attendance_pulang/{date}/{nisn} alih-alih
+// (atau selain) /attendance/{date}/{nisn}.
+// ---------------------------------------------------------------------
+export interface AttendanceCheckoutSettings {
+  enabled: boolean; // matikan fitur kalau backend belum siap mendukung
+  pulang_start: string; // "HH:MM", mis. "15:00" -- mulai jam ini, absen dianggap "pulang"
+  cooldown_seconds: number; // jeda minimum antar-absen pulang orang yang sama (pola sama seperti cooldown datang)
+}
+
+// ---------------------------------------------------------------------
 // /classes/{class_id}   -- NODE BARU (webapp-only, tidak menyentuh
 // kontrak backend). class_id itu sendiri adalah label yang dipakai
 // (mis. "9-1", "7-12") -- format divalidasi di lib/validation.ts.
@@ -164,51 +214,6 @@ export interface SchoolClass {
 export type ClassesNode = Record<string, SchoolClass>;
 
 // ---------------------------------------------------------------------
-// /parent_links/{token}   -- NODE BARU, fondasi Parent Portal.
-// token: string acak panjang (bukan NISN) -- dibagikan admin ke orang
-// tua lewat WA sebagai bagian dari URL (/parent/{token}). Node ini
-// SENGAJA terpisah dari /students supaya security rule bisa membatasi
-// akses baca secara sempit tanpa mengekspos seluruh daftar siswa.
-// ---------------------------------------------------------------------
-export interface ParentLink {
-  nisn: string;
-  /**
-   * Nama & kelas siswa DI-SALIN ke sini saat link dibuat (bukan baca
-   * langsung dari /students saat portal dibuka) -- sengaja, supaya
-   * Parent Portal TIDAK PERNAH butuh izin baca node /students sama
-   * sekali, memperkecil permukaan yang perlu diamankan lewat Security
-   * Rules. Konsekuensi: kalau nama/kelas siswa diubah admin setelahnya,
-   * link lama tidak otomatis ter-update -- dianggap trade-off yang
-   * wajar (nama/kelas jarang berubah, dan admin bisa hapus+buat ulang
-   * link kalau perlu).
-   */
-  student_name: string;
-  student_class: string;
-  parent_name: string;
-  parent_phone: string; // format bebas, disimpan apa adanya (mis. "+62812xxxx")
-  /**
-   * uid Firebase Anonymous Auth dari kunjungan TERAKHIR -- di-overwrite
-   * tiap kali portal dibuka (lihat catatan desain di app/parent/[token]).
-   * null berarti belum pernah dibuka sama sekali.
-   */
-  uid: string | null;
-  created_at: string; // ISO8601
-}
-
-export type ParentLinksNode = Record<string, ParentLink>;
-
-// ---------------------------------------------------------------------
-// /parent_uid_index/{uid}   -- NODE BARU, index terbalik uid -> token.
-// Ditulis SEKALI SAAT PORTAL DIBUKA (bukan oleh admin) supaya Security
-// Rules bisa mengecek "apakah uid ini berhak baca data nisn ini" dengan
-// cepat (root.child('parent_uid_index').child(auth.uid).val() -> token
-// -> root.child('parent_links').child(token).child('nisn').val()).
-// Realtime DB tidak bisa query/filter di dalam rule, jadi index seperti
-// ini adalah pola standar Firebase untuk kasus reverse-lookup begini.
-// ---------------------------------------------------------------------
-export type ParentUidIndexNode = Record<string, string>; // { [uid]: token }
-
-// ---------------------------------------------------------------------
 // /admins/{uid}   -- NODE BARU, allowlist akun admin (Firebase Auth
 // Email/Password). Diisi MANUAL oleh Han lewat Firebase Console setelah
 // akun Auth-nya dibuat -- webapp tidak punya UI untuk menambah admin
@@ -224,15 +229,16 @@ export interface FirebaseRootSchema {
   students: StudentsNode;
   attendance: Record<string, AttendanceByDateNode>; // { [date]: { [nisn]: AttendanceRecord } }
   attendance_by_student: Record<string, AttendanceByStudentNode>; // { [nisn]: { [date]: entry } }
+  attendance_pulang: Record<string, AttendanceCheckoutByDateNode>; // { [date]: { [nisn]: AttendanceCheckoutRecord } }
+  attendance_pulang_by_student: Record<string, AttendanceCheckoutByStudentNode>; // { [nisn]: { [date]: entry } }
   registration_sessions: Record<string, RegistrationSession>;
   command: CommandNode;
   devices: Record<string, { status: DeviceStatus }>;
   settings: {
     recognition: RecognitionSettings;
     attendance: AttendanceSettings;
+    attendance_checkout: AttendanceCheckoutSettings;
   };
   classes: ClassesNode;
-  parent_links: ParentLinksNode;
-  parent_uid_index: ParentUidIndexNode;
   admins: AdminsNode;
 }

@@ -4,16 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { Home, UserPlus, FileBarChart2, Settings, Wrench, PlugZap, School, Menu, X, LogOut } from "lucide-react";
+import { Home, UserPlus, Users, FileBarChart2, Settings, Wrench, PlugZap, School, Menu, X, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 const ITEMS = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/register", label: "Registrasi", icon: UserPlus },
+  { href: "/admin/students", label: "Kelola Siswa", icon: Users },
   { href: "/report", label: "Riwayat & Laporan", icon: FileBarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/admin", label: "Admin & Testing", icon: Wrench },
-  { href: "/test-connection", label: "Diagnosa Koneksi", icon: PlugZap },
+  // { href: "/admin", label: "Admin & Testing", icon: Wrench },
+  // { href: "/test-connection", label: "Diagnosa Koneksi", icon: PlugZap },
 ];
 
 function Brand() {

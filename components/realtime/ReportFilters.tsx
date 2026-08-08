@@ -5,7 +5,7 @@
  * sendiri, cuma kumpulkan input dan lempar ke parent lewat onSubmit.
  */
 import { useState, type FormEvent } from "react";
-import type { ReportQuery } from "@/lib/report-api";
+import type { ReportQuery } from "@/types/report";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 

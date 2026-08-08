@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { FileBarChart2 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
-import ReportFilters from "@/components/rest/ReportFilters";
-import ReportTable from "@/components/rest/ReportTable";
+import ReportFilters from "@/components/realtime/ReportFilters";
+import ReportTable from "@/components/realtime/ReportTable";
+import DeleteAttendanceDayPanel from "@/components/realtime/DeleteAttendanceDayPanel";
 import { useRecapReport } from "@/lib/hooks/useRecapReport";
-import type { ReportQuery } from "@/lib/report-api";
+import type { ReportQuery } from "@/types/report";
 import { getTodayDateJakarta } from "@/lib/date";
 
 function getDefaultQuery(): ReportQuery {
@@ -20,7 +21,7 @@ function getDefaultQuery(): ReportQuery {
 export default function ReportPage() {
   const [defaultQuery] = useState(getDefaultQuery);
   const [lastQuery, setLastQuery] = useState<ReportQuery>(defaultQuery);
-  const { data, loading, error, run } = useRecapReport();
+  const { data, loading, error, run, refresh } = useRecapReport();
 
   useEffect(() => {
     run(defaultQuery);
@@ -34,13 +35,19 @@ export default function ReportPage() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-5 p-6 sm:p-8">
-      <PageHeader icon={FileBarChart2} title="Riwayat & Laporan" subtitle="Rekap absensi per rentang tanggal & kelas" />
+      <PageHeader
+        icon={FileBarChart2}
+        title="Riwayat & Laporan"
+        subtitle="Rekap absensi per rentang tanggal & kelas"
+      />
 
       <ReportFilters initial={defaultQuery} loading={loading} onSubmit={handleSubmit} />
 
       {error && <p className="text-sm text-brick">{error}</p>}
-      {loading && !data && <p className="text-sm text-ink-muted">Memuat rekap…</p>}
-      {data && <ReportTable data={data} query={lastQuery} />}
+      {loading && !data && <p className="text-sm text-ink-muted">Memuat rekap dari Firebase…</p>}
+      {data && <ReportTable data={data} query={lastQuery} onChanged={refresh} />}
+
+      <DeleteAttendanceDayPanel onDeleted={refresh} />
     </main>
   );
 }

@@ -15,15 +15,27 @@ import { AnimatePresence, motion } from "framer-motion";
 import { UsersRound } from "lucide-react";
 import { getFirebaseDb } from "@/lib/firebase";
 import { getTodayDateJakarta } from "@/lib/date";
-import type { AttendanceByDateNode, AttendanceRecord } from "@/types/firebase-schema";
+import type {
+  AttendanceByDateNode,
+  AttendanceCheckoutByDateNode,
+  AttendanceRecord,
+} from "@/types/firebase-schema";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 
 type ConnectionState = "connecting" | "live" | "error";
 
+// Union tipis supaya list gabungan datang+pulang tetap type-safe -- record
+// pulang tidak punya "status" asli (Hadir/Terlambat), tapi backend sudah
+// menulis "status": "Pulang" di dalamnya (lihat catatan di
+// attendance_service.py::_record_checkout), jadi cukup pakai AttendanceRecord
+// sebagai bentuk gabungan.
+type FeedItem = AttendanceRecord & { kind: "datang" | "pulang" };
+
 export default function AttendanceFeed() {
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [arrivalRecords, setArrivalRecords] = useState<AttendanceRecord[]>([]);
+  const [checkoutRecords, setCheckoutRecords] = useState<AttendanceRecord[]>([]);
   const [state, setState] = useState<ConnectionState>("connecting");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [today, setToday] = useState(getTodayDateJakarta);
@@ -39,18 +51,29 @@ export default function AttendanceFeed() {
     return () => clearInterval(id);
   }, []);
 
+  // Dua listener terpisah -- sumbernya memang dua node berbeda
+  // (attendance vs attendance_pulang, lihat catatan struktur di
+  // types/firebase-schema.ts). "live"/"error" digabung dari kedua
+  // listener supaya badge status koneksi tetap merepresentasikan
+  // keduanya, bukan cuma salah satu.
   useEffect(() => {
     const db = getFirebaseDb();
     const attendanceRef = ref(db, `attendance/${today}`);
+    const checkoutRef = ref(db, `attendance_pulang/${today}`);
 
-    const unsubscribe = onValue(
+    let arrivalReady = false;
+    let checkoutReady = false;
+    const markLiveIfReady = () => {
+      if (arrivalReady && checkoutReady) setState("live");
+    };
+
+    const unsubArrival = onValue(
       attendanceRef,
       (snapshot) => {
         const data: AttendanceByDateNode | null = snapshot.val();
-        const list = data ? Object.values(data) : [];
-        list.sort((a, b) => b.time.localeCompare(a.time));
-        setRecords(list);
-        setState("live");
+        setArrivalRecords(data ? Object.values(data) : []);
+        arrivalReady = true;
+        markLiveIfReady();
       },
       (err) => {
         setState("error");
@@ -58,8 +81,34 @@ export default function AttendanceFeed() {
       }
     );
 
-    return () => unsubscribe();
+    const unsubCheckout = onValue(
+      checkoutRef,
+      (snapshot) => {
+        const data: AttendanceCheckoutByDateNode | null = snapshot.val();
+        // Record pulang tidak punya field "status" asli seperti
+        // AttendanceRecord (Hadir/Terlambat) -- tapi backend sudah
+        // mengisi "status": "Pulang" di setiap record (lihat
+        // attendance_service.py::_record_checkout), jadi cast ini aman.
+        setCheckoutRecords(data ? (Object.values(data) as unknown as AttendanceRecord[]) : []);
+        checkoutReady = true;
+        markLiveIfReady();
+      },
+      (err) => {
+        setState("error");
+        setErrorMsg(err.message);
+      }
+    );
+
+    return () => {
+      unsubArrival();
+      unsubCheckout();
+    };
   }, [today]);
+
+  const records: FeedItem[] = [
+    ...arrivalRecords.map((r) => ({ ...r, kind: "datang" as const })),
+    ...checkoutRecords.map((r) => ({ ...r, kind: "pulang" as const })),
+  ].sort((a, b) => b.time.localeCompare(a.time));
 
   return (
     <Card className="p-0 overflow-hidden">
@@ -87,7 +136,7 @@ export default function AttendanceFeed() {
         <AnimatePresence initial={false}>
           {records.map((r) => (
             <motion.li
-              key={r.nisn}
+              key={`${r.kind}-${r.nisn}`}
               layout
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -112,7 +161,11 @@ export default function AttendanceFeed() {
                 </p>
               </div>
               <div className="text-right">
-                <Badge variant={r.status === "Terlambat" ? "warning" : "success"}>{r.status}</Badge>
+                <Badge
+                  variant={r.kind === "pulang" ? "info" : r.status === "Terlambat" ? "warning" : "success"}
+                >
+                  {r.status}
+                </Badge>
                 <p className="mt-1 font-mono text-xs text-ink-muted">{r.time}</p>
               </div>
             </motion.li>

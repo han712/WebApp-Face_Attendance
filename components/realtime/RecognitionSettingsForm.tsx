@@ -13,7 +13,7 @@ import type { RecognitionSettings } from "@/types/firebase-schema";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
-const DEFAULT: RecognitionSettings = { match_threshold: 0.38 };
+const DEFAULT: RecognitionSettings = { match_threshold: 0.61 };
 
 export default function RecognitionSettingsForm() {
   const { value, loading, error, saving, saveError, save } =
@@ -75,21 +75,24 @@ function Fields({
         </span>
         <input
           type="range"
-          min={0.2}
-          max={0.6}
+          min={0.1}
+          max={0.9}
           step={0.01}
           value={threshold}
           onChange={(e) => setThreshold(parseFloat(e.target.value))}
           className="w-full accent-forest"
         />
         <span className="flex justify-between text-xs text-ink-muted">
-          <span>0.2 (longgar)</span>
-          <span>0.6 (ketat)</span>
+          <span>0.1 (longgar)</span>
+          <span>0.9 (ketat)</span>
         </span>
       </label>
       <p className="text-xs text-ink-muted">
-        Makin besar nilainya, makin ketat syarat wajah dianggap cocok (cosine similarity, BUKAN
-        euclidean distance). Default backend: 0.38.
+        Makin besar nilainya, makin ketat syarat wajah dianggap cocok. 
+        Semakin Kecil, Wajah bisa tidak terdeteksi
+      </p>
+      <p className="text-xs text-ink-muted">
+        Default Nilai: 0.6
       </p>
 
       {saveError && <p className="text-sm text-brick">Gagal menyimpan: {saveError}</p>}

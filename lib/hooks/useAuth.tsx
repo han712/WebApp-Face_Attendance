@@ -10,9 +10,15 @@
  * sama -- login page ada DI LUAR grup (admin) (tidak boleh ikut ke-guard).
  *
  * TIDAK dipakai oleh Parent Portal -- portal itu pakai Anonymous Auth
- * sendiri (lihat app/parent/[token]/page.tsx), sengaja tidak lewat
- * context ini supaya dua alur auth (admin vs parent) tidak saling
- * campur/reset satu sama lain.
+ * sendiri (lihat lib/hooks/useStudentNameSearch.ts, dipakai dari
+ * app/parent/page.tsx), sengaja tidak lewat context ini supaya dua
+ * alur auth (admin vs parent) tidak saling campur/reset satu sama lain
+ * DI LEVEL REACT CONTEXT. CATATAN: Firebase Auth JS SDK tetap 1 instance
+ * per browser (state auth dibagi lewat IndexedDB antar tab) -- kalau
+ * admin login di satu tab lalu /parent dibuka di tab lain PADA BROWSER
+ * YANG SAMA, anonymous sign-in bisa menggantikan sesi admin di semua
+ * tab. Ini bukan hal baru dari perubahan Parent Portal terbaru --
+ * sudah jadi karakteristik desain sejak awal (portal tanpa login).
  */
 import {
   createContext,

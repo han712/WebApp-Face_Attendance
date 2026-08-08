@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { Wrench, Users, UserRound, ArrowRight } from "lucide-react";
+import { Wrench } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
-import Card from "@/components/ui/Card";
 import DirectCameraPreview from "@/components/rest/DirectCameraPreview";
 import LivenessSessionsPanel from "@/components/rest/LivenessSessionsPanel";
 import DebugActionPanel from "@/components/rest/DebugActionPanel";
@@ -30,36 +28,6 @@ export default function AdminPage() {
         title="Admin & Testing"
         subtitle="Endpoint /debug/* belum ada autentikasi -- jangan expose ke internet publik, cukup jaringan lokal sekolah."
       />
-
-      <Link href="/admin/students">
-        <Card hoverable className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-forest/10 text-forest-dark">
-              <Users size={20} />
-            </div>
-            <div>
-              <p className="font-medium">Kelola Siswa</p>
-              <p className="text-sm text-ink-muted">Daftar, cari, dan hapus data siswa terdaftar</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-ink-muted" />
-        </Card>
-      </Link>
-
-      <Link href="/admin/parents">
-        <Card hoverable className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-forest/10 text-forest-dark">
-              <UserRound size={20} />
-            </div>
-            <div>
-              <p className="font-medium">Portal Orang Tua</p>
-              <p className="text-sm text-ink-muted">Buat & kelola link portal absensi untuk orang tua</p>
-            </div>
-          </div>
-          <ArrowRight size={18} className="text-ink-muted" />
-        </Card>
-      </Link>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Live Camera Preview</h2>

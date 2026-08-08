@@ -72,5 +72,5 @@ export default function DeviceStatusIndicator() {
     return <Badge variant="success" pulse>ESP32 online</Badge>;
   }
 
-  return <Badge variant="danger">{isStale ? "ESP32 offline (heartbeat basi)" : "ESP32 offline"}</Badge>;
+  return <Badge variant="danger">{isStale ? "ESP32 offline" : "ESP32 offline"}</Badge>;
 }
