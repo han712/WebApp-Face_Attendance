@@ -5,7 +5,7 @@
  * dan query on-demand (status kamera, rekap laporan). BUKAN untuk data
  * realtime -- itu tugas lib/firebase.ts + listener.
  *
- * Base URL WAJIB dari env var NEXT_PUBLIC_API_URL (bukan hardcode IP),
+ * Base URL WAJIB dari env var FACE_RECOGNITION_API_URL
  * karena IP server backend di jaringan sekolah bisa berubah.
  */
 
@@ -33,10 +33,10 @@ export class ApiError extends Error {
 }
 
 function getBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL;
+  const url = process.env.FACE_RECOGNITION_API_URL;
   if (!url) {
     throw new Error(
-      "NEXT_PUBLIC_API_URL belum diset di .env.local. Contoh: http://192.168.1.50:8080"
+      "FACE_RECOGNITION_API_URL belum diset di .env.local. Contoh: http://192.168.1.50:8080"
     );
   }
   // Buang trailing slash supaya penggabungan path konsisten

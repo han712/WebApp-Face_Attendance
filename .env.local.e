@@ -8,9 +8,9 @@
 # --- Backend Python (REST API) ---
 # IP:port server backend Anda saat ini di jaringan sekolah.
 # Ganti setiap kali IP laptop server berubah, TANPA perlu rebuild webapp.
-#NEXT_PUBLIC_API_URL=https://squall-frugality-encircle.ngrok-free.dev
-NEXT_PUBLIC_API_URL=http://192.168.1.59:8080
-# NEXT_PUBLIC_API_URL=http://LAPTOP-STSOBB8I.local:8080
+#FACE_RECOGNITION_API_URL=https://squall-frugality-encircle.ngrok-free.dev
+FACE_RECOGNITION_API_URL=http://192.168.1.59:8080
+# FACE_RECOGNITION_API_URL=http://LAPTOP-STSOBB8I.local:8080
 
 
 # NEXT_PUBLIC_IP_WEBCAM_URL= http://10.5.94.217:8080/video

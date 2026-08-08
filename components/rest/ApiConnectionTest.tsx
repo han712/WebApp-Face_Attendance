@@ -37,7 +37,7 @@ export default function ApiConnectionTest() {
         } else {
           setErrorMsg(
             err instanceof Error
-              ? `${err.message} -- kemungkinan besar NEXT_PUBLIC_API_URL salah/tidak bisa dijangkau, BUKAN masalah CORS (backend sudah allow semua origin).`
+              ? `${err.message} -- kemungkinan besar FACE_RECOGNITION_API_URL salah/tidak bisa dijangkau, BUKAN masalah CORS (backend sudah allow semua origin).`
               : String(err)
           );
         }
