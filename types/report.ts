@@ -27,13 +27,9 @@ export interface StudentReportEntry {
   hadir: number;
   terlambat: number;
   alpa: number;
+  sudah_pulang: number; // jumlah hari dalam rentang laporan yang tercatat absen pulang
   days: Record<string, "Hadir" | "Terlambat" | "Alpa">; // key: "YYYY-MM-DD"
-  // Jam absen pulang per tanggal, kalau ada (dari attendance_pulang_by_student).
-  // Terpisah dari `days` sengaja -- pulang bukan bagian dari status
-  // Hadir/Terlambat/Alpa, murni info tambahan "jam berapa pulang" kalau
-  // tercatat. Tanggal yang tidak ada di sini = tidak ada record pulang
-  // (bukan berarti Alpa, karena absen pulang memang opsional/fitur terpisah).
-  checkoutTimes: Record<string, string>; // key: "YYYY-MM-DD" -> "HH:MM:SS"
+  pulang: Record<string, string>; // key: "YYYY-MM-DD" -> jam pulang "HH:MM:SS", hanya ada kalau tercatat
 }
 
 export interface RecapResponse {
@@ -43,5 +39,6 @@ export interface RecapResponse {
     hadir: number;
     terlambat: number;
     alpa: number;
+    sudah_pulang: number;
   };
 }

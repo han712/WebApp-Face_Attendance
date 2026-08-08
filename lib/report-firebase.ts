@@ -94,13 +94,13 @@ export async function fetchRecapFromFirebase(query: ReportQuery): Promise<RecapR
   let totalHadir = 0;
   let totalTerlambat = 0;
   let totalAlpa = 0;
+  let totalSudahPulang = 0;
 
   await Promise.all(
     filteredStudents.map(async ([nisn, student]) => {
-      // Datang & pulang di-fetch paralel -- dua node independen (lihat
-      // catatan struktur di types/firebase-schema.ts), tidak saling
-      // menunggu supaya siswa yang belum punya history pulang sama
-      // sekali tidak memperlambat load siswa lain.
+      // Dibaca paralel: /attendance_by_student (datang) dan
+      // /attendance_pulang_by_student (pulang) -- dua node terpisah,
+      // lihat catatan kontrak di types/firebase-schema.ts.
       const [historySnapshot, checkoutSnapshot] = await Promise.all([
         get(ref(db, `attendance_by_student/${nisn}`)),
         get(ref(db, `attendance_pulang_by_student/${nisn}`)),
@@ -111,10 +111,11 @@ export async function fetchRecapFromFirebase(query: ReportQuery): Promise<RecapR
       const registeredDate = student.registered_at ? student.registered_at.slice(0, 10) : null;
 
       const days: StudentReportEntry["days"] = {};
-      const checkoutTimes: StudentReportEntry["checkoutTimes"] = {};
+      const pulang: StudentReportEntry["pulang"] = {};
       let hadir = 0;
       let terlambat = 0;
       let alpa = 0;
+      let sudahPulang = 0;
 
       for (const date of dateList) {
         if (registeredDate && date < registeredDate) continue; // belum terdaftar di tanggal ini
@@ -130,7 +131,10 @@ export async function fetchRecapFromFirebase(query: ReportQuery): Promise<RecapR
         }
 
         const checkoutEntry = checkoutHistory[date];
-        if (checkoutEntry) checkoutTimes[date] = checkoutEntry.time;
+        if (checkoutEntry) {
+          pulang[date] = checkoutEntry.time;
+          sudahPulang++;
+        }
       }
 
       students[nisn] = {
@@ -139,19 +143,21 @@ export async function fetchRecapFromFirebase(query: ReportQuery): Promise<RecapR
         hadir,
         terlambat,
         alpa,
+        sudah_pulang: sudahPulang,
         days,
-        checkoutTimes,
+        pulang,
       };
       totalHadir += hadir;
       totalTerlambat += terlambat;
       totalAlpa += alpa;
+      totalSudahPulang += sudahPulang;
     })
   );
 
   return {
     period: { start: query.startDate, end: query.endDate, class: query.className ?? null },
     students,
-    totals: { hadir: totalHadir, terlambat: totalTerlambat, alpa: totalAlpa },
+    totals: { hadir: totalHadir, terlambat: totalTerlambat, alpa: totalAlpa, sudah_pulang: totalSudahPulang },
   };
 }
 
@@ -185,10 +191,9 @@ export async function deleteAttendanceRecord(date: string, nisn: string): Promis
 
 /**
  * Hapus 1 record absen PULANG: 1 siswa di 1 tanggal tertentu.
- * Node terpisah dari deleteAttendanceRecord (lihat catatan struktur di
- * types/firebase-schema.ts) -- sengaja fungsi sendiri, bukan parameter
- * tambahan di deleteAttendanceRecord, supaya path yang ditulis/dihapus
- * tetap eksplisit & mudah diaudit lewat Security Rules.
+ * Pola identik deleteAttendanceRecord, tapi ke node terpisah
+ * `/attendance_pulang` & `/attendance_pulang_by_student` -- lihat
+ * catatan kontrak di types/firebase-schema.ts.
  */
 export async function deleteCheckoutRecord(date: string, nisn: string): Promise<void> {
   const db = getFirebaseDb();

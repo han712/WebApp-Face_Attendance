@@ -23,6 +23,7 @@ interface StudentRow {
   hadir: number;
   terlambat: number;
   alpa: number;
+  sudah_pulang: number;
 }
 
 function toRows(data: RecapResponse): StudentRow[] {
@@ -34,6 +35,7 @@ function toRows(data: RecapResponse): StudentRow[] {
       hadir: entry.hadir,
       terlambat: entry.terlambat,
       alpa: entry.alpa,
+      sudah_pulang: entry.sudah_pulang,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -61,14 +63,25 @@ export async function exportRecapToExcel(data: RecapResponse): Promise<void> {
       Hadir: r.hadir,
       Terlambat: r.terlambat,
       Alpa: r.alpa,
+      "Sudah Pulang": r.sudah_pulang,
     }))
   );
 
   // Baris detail harian (long format) -- 1 baris per (siswa, tanggal).
+  // Kolom "Jam Pulang" diisi kalau ada record di /attendance_pulang_by_student
+  // untuk tanggal itu, kalau tidak dikosongkan (bukan berarti Alpa -- absen
+  // datang & absen pulang dua hal terpisah, lihat types/report.ts).
   const detailRows: Record<string, string>[] = [];
   for (const [nisn, entry] of Object.entries(data.students)) {
     for (const [date, status] of Object.entries(entry.days)) {
-      detailRows.push({ NISN: nisn, Nama: entry.name, Kelas: entry.class, Tanggal: date, Status: status });
+      detailRows.push({
+        NISN: nisn,
+        Nama: entry.name,
+        Kelas: entry.class,
+        Tanggal: date,
+        Status: status,
+        "Jam Pulang": entry.pulang[date] ?? "",
+      });
     }
   }
   const detailSheet = XLSX.utils.json_to_sheet(detailRows);
@@ -95,9 +108,9 @@ export async function exportRecapToPdf(data: RecapResponse): Promise<void> {
 
   autoTable(doc, {
     startY: 28,
-    head: [["NISN", "Nama", "Kelas", "Hadir", "Terlambat", "Alpa"]],
-    body: rows.map((r) => [r.nisn, r.name, r.class, r.hadir, r.terlambat, r.alpa]),
-    foot: [["", "", "Total", data.totals.hadir, data.totals.terlambat, data.totals.alpa]],
+    head: [["NISN", "Nama", "Kelas", "Hadir", "Terlambat", "Alpa", "Sudah Pulang"]],
+    body: rows.map((r) => [r.nisn, r.name, r.class, r.hadir, r.terlambat, r.alpa, r.sudah_pulang]),
+    foot: [["", "", "Total", data.totals.hadir, data.totals.terlambat, data.totals.alpa, data.totals.sudah_pulang]],
     styles: { fontSize: 9 },
     headStyles: { fillColor: [45, 90, 61] }, // forest
     footStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: "bold" },

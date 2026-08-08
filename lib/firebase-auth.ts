@@ -5,7 +5,7 @@
  *
  * Dipakai untuk DUA hal berbeda:
  * 1. Admin: Email/Password sign-in (lib/hooks/useAuth.ts, app/login).
- * 2. Parent Portal: Anonymous sign-in (app/parent/[token]) -- silent,
+ * 2. Parent Portal: Anonymous sign-in (app/parent) -- silent,
  *    tanpa form, cuma supaya Security Rules punya `auth.uid` untuk
  *    dicek. TIDAK ada UI/interaksi untuk anonymous sign-in ini.
  */

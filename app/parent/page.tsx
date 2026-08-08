@@ -16,8 +16,6 @@ import { CheckCircle2, Clock, HelpCircle, School, Search, ArrowLeft, AlertTriang
 import { useStudentNameSearch, type StudentSearchResult } from "@/lib/hooks/useStudentNameSearch";
 import { useStudentAttendance } from "@/lib/hooks/useStudentAttendance";
 import { useStudentCheckout } from "@/lib/hooks/useStudentCheckout";
-import { useFirebaseSetting } from "@/lib/hooks/useFirebaseSetting";
-import type { AttendanceCheckoutSettings } from "@/types/firebase-schema";
 import Card from "@/components/ui/Card";
 
 const STATUS_CONFIG = {
@@ -122,24 +120,20 @@ function StudentSearchStep({ onSelect }: { onSelect: (s: StudentSearchResult) =>
 // ---------------------------------------------------------------------
 function AttendanceView({ student, onBack }: { student: StudentSearchResult; onBack: () => void }) {
   const { loading, errorMsg, history, todayStatus } = useStudentAttendance(student.nisn);
-  const { value: checkoutSettings } = useFirebaseSetting<AttendanceCheckoutSettings>("settings/attendance_checkout");
-  const checkoutEnabled = checkoutSettings?.enabled ?? false;
   const {
     loading: checkoutLoading,
     history: checkoutHistory,
     hasCheckedOutToday,
     todayTime: checkoutTodayTime,
-  } = useStudentCheckout(checkoutEnabled ? student.nisn : null);
+  } = useStudentCheckout(student.nisn);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
   const allDates = useMemo(() => {
     const dates = new Set(Object.keys(history));
-    if (checkoutEnabled) {
-      Object.keys(checkoutHistory).forEach((d) => dates.add(d));
-    }
+    Object.keys(checkoutHistory).forEach((d) => dates.add(d));
     return Array.from(dates).sort((a, b) => b.localeCompare(a));
-  }, [history, checkoutHistory, checkoutEnabled]);
+  }, [history, checkoutHistory]);
 
   const filteredDates = useMemo(() => {
     return allDates.filter((date) => {
@@ -183,22 +177,20 @@ function AttendanceView({ student, onBack }: { student: StudentSearchResult; onB
             <p className="text-2xl font-bold">{loading ? "…" : todayConfig.label}</p>
           </motion.div>
 
-          {checkoutEnabled && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.25, delay: 0.05 }}
-              className={`rounded-2xl p-6 text-center ${
-                hasCheckedOutToday ? "bg-forest text-white" : "bg-ink/10 text-ink-muted"
-              }`}
-            >
-              <LogOut size={36} className="mx-auto mb-2" />
-              <p className="text-sm opacity-90">Status pulang</p>
-              <p className="text-2xl font-bold">
-                {checkoutLoading ? "…" : hasCheckedOutToday ? `Sudah Pulang (${checkoutTodayTime})` : "Belum Pulang"}
-              </p>
-            </motion.div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25, delay: 0.05 }}
+            className={`rounded-2xl p-6 text-center ${
+              hasCheckedOutToday ? "bg-forest text-white" : "bg-ink/10 text-ink-muted"
+            }`}
+          >
+            <LogOut size={36} className="mx-auto mb-2" />
+            <p className="text-sm opacity-90">Status pulang</p>
+            <p className="text-2xl font-bold">
+              {checkoutLoading ? "…" : hasCheckedOutToday ? `Sudah Pulang (${checkoutTodayTime})` : "Belum Pulang"}
+            </p>
+          </motion.div>
 
           <Card className="space-y-3">
             <div className="flex items-center justify-between">
@@ -247,7 +239,7 @@ function AttendanceView({ student, onBack }: { student: StudentSearchResult; onB
               <ul className="divide-y divide-border">
                 {filteredDates.map((date) => {
                   const entry = history[date];
-                  const checkoutEntry = checkoutEnabled ? checkoutHistory[date] : undefined;
+                  const checkoutEntry = checkoutHistory[date];
                   return (
                     <li key={date} className="flex items-center justify-between py-2 text-sm">
                       <span className="text-ink-muted">{date}</span>
@@ -266,12 +258,10 @@ function AttendanceView({ student, onBack }: { student: StudentSearchResult; onB
                         ) : (
                           <span className="text-xs text-ink-muted">Tidak absen datang</span>
                         )}
-                        {checkoutEnabled && (
-                          <span className="flex items-center gap-1 rounded-full bg-ink/5 px-2 py-0.5 text-xs font-medium text-ink-muted">
-                            <LogOut size={11} />
-                            {checkoutEntry ? checkoutEntry.time : "-"}
-                          </span>
-                        )}
+                        <span className="flex items-center gap-1 rounded-full bg-ink/5 px-2 py-0.5 text-xs font-medium text-ink-muted">
+                          <LogOut size={11} />
+                          {checkoutEntry ? checkoutEntry.time : "-"}
+                        </span>
                       </span>
                     </li>
                   );

@@ -11,7 +11,7 @@ import PipelineAutoRecoveryWatcher from "@/components/PipelineAutoRecoveryWatche
 /**
  * Guard + shell untuk SEMUA halaman admin (Dashboard, Registrasi,
  * Laporan, Settings, Admin&Testing, Diagnosa Koneksi). Route di luar
- * grup (admin) -- /login dan /parent/[token] -- TIDAK kena ini sama
+ * grup (admin) -- /login dan /parent -- TIDAK kena ini sama
  * sekali (Next.js App Router: grup route dengan kurung tidak menumpuk
  * layout ke path di luar grupnya).
  *

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 /**
  * Root layout ini SENGAJA minimal (font, metadata, AuthProvider saja) --
  * TIDAK ada Sidebar/banner di sini. Alasan: root layout berlaku untuk
- * SEMUA route termasuk /login dan /parent/[token], yang keduanya TIDAK
+ * SEMUA route termasuk /login dan /parent, yang keduanya TIDAK
  * boleh menampilkan shell admin (Sidebar, kontrol pipeline, dst).
  * Shell admin dipindah ke app/(admin)/layout.tsx, cuma berlaku untuk
  * route di dalam grup (admin).
