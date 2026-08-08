@@ -5,7 +5,15 @@
  * dan query on-demand (status kamera, rekap laporan). BUKAN untuk data
  * realtime -- itu tugas lib/firebase.ts + listener.
  *
- * Base URL WAJIB dari env var FACE_RECOGNITION_API_URL
+ * Base URL WAJIB dari env var NEXT_PUBLIC_FACE_RECOGNITION_API_URL
+ * (PENTING: harus diawali NEXT_PUBLIC_ -- kode ini dipanggil dari
+ * komponen "use client" yang jalan di BROWSER pengunjung, bukan di
+ * server. Next.js hanya meng-inline env var ke bundle browser kalau
+ * diawali NEXT_PUBLIC_; tanpa prefix itu, nilainya SELALU undefined
+ * di browser apa pun yang di-set di server/hosting -- sebelumnya nama
+ * var ini "FACE_RECOGNITION_API_URL" tanpa prefix, itu bug yang
+ * membuat webapp tidak pernah bisa konek ke backend sama sekali
+ * setelah di-deploy, walau backend & Cloudflare Tunnel sehat)
  * karena IP server backend di jaringan sekolah bisa berubah.
  */
 
@@ -33,10 +41,10 @@ export class ApiError extends Error {
 }
 
 function getBaseUrl(): string {
-  const url = process.env.FACE_RECOGNITION_API_URL;
+  const url = process.env.NEXT_PUBLIC_FACE_RECOGNITION_API_URL;
   if (!url) {
     throw new Error(
-      "FACE_RECOGNITION_API_URL belum diset di .env.local. Contoh: http://192.168.1.50:8080"
+      "NEXT_PUBLIC_FACE_RECOGNITION_API_URL belum diset. Contoh: http://192.168.1.50:8080 (lokal) atau https://xxxx.trycloudflare.com (Cloudflare Tunnel). Kalau deploy lewat Firebase App Hosting, set ini di Console -> App Hosting -> Environment variables, BUKAN cuma .env.local."
     );
   }
   // Buang trailing slash supaya penggabungan path konsisten
