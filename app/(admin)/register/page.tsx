@@ -20,7 +20,7 @@ export default function RegisterPage() {
       <PageHeader
         icon={UserPlus}
         title="Registrasi Siswa"
-        subtitle="Trigger dulu lewat REST, progres dipantau realtime lewat Firebase"
+        subtitle="progres dilakukan secara realtime"
       />
 
       {sessionId ? (

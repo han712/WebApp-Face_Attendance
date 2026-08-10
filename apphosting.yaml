@@ -1,0 +1,91 @@
+# apphosting.yaml
+#
+# PENTING: nilai di bawah ini SEMUA masih placeholder ("ISI_..."). Saya
+# sengaja TIDAK mengisi nilai asli karena saya tidak punya API key/URL
+# Anda -- copy-paste isinya sendiri dari Firebase Console (Project
+# Settings -> General -> Your apps -> SDK config) dan dari URL
+# Cloudflare Tunnel Anda saat ini.
+#
+# Semua var di sini diawali NEXT_PUBLIC_ karena dibaca dari komponen
+# "use client" (jalan di browser) -- lihat lib/firebase.ts & lib/api.ts.
+# availability: [BUILD, RUNTIME] supaya ke-inline saat Next.js build
+# DAN tetap ada saat runtime (App Hosting jalan di Cloud Run, bukan
+# static file, jadi runtime env tetap relevan untuk server components).
+
+env:
+  # --- Firebase Client SDK (Realtime Database + Auth) ---
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyDRoCtKs5nVE48TZNfHl3WoFSaAhB023lI"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "attendance-siswa.firebaseapp.com" # format: nama-project.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_DATABASE_URL
+    value: "https://attendance-siswa-default-rtdb.asia-southeast1.firebasedatabase.app" # format: https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "attendance-siswa"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "attendance-siswa.firebasestorage.app" # format: nama-project.appspot.com atau nama-project.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "677556815814"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:677556815814:web:c213c0fc3de9a2a643d4c7"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # --- Backend Python (REST API via Cloudflare Tunnel) ---
+  # PENTING: kalau pakai quick tunnel (bukan named tunnel), URL ini
+  # ganti tiap kali tunnel di-restart -- harus update baris ini +
+  # `firebase deploy --only apphosting` ulang setiap kali itu terjadi.
+  - variable: NEXT_PUBLIC_FACE_RECOGNITION_API_URL
+    value: "https://hanif-face-attend.my.id" # format: https://xxxx-xxxx-xxxx.trycloudflare.com (quick tunnel) atau https://domain-anda.com (named tunnel)
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_IP_WEBCAM_URL
+    value: "http://100.84.74.28:8080/video"
+    availability:
+        - BUILD
+        - RUNTIME
+
+  - variable: NEXT_PUBLIC_ESP32_DEVICE_ID
+    value: "esp32_main" # format: https://xxxx-xxxx-xxxx.trycloudflare.com (quick tunnel) atau https://domain-anda.com (named tunnel)
+    availability:
+      - BUILD
+      - RUNTIME
+
+
+# Opsional -- kalau nanti butuh menyembunyikan API key dari isi file ini
+# (misal repo akan di-push ke GitHub publik), pindahkan ke Secret
+# Manager dan referensikan begini, ganti "value:" jadi "secret:":
+#
+#   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+#     secret: firebase-api-key
+#     availability:
+#       - BUILD
+#       - RUNTIME
+#
+# Cara set secret-nya: firebase apphosting:secrets:set firebase-api-key

@@ -70,7 +70,7 @@ function Fields({
 
       <label className="block space-y-1">
         <span className="flex items-center justify-between text-sm text-ink-muted">
-          <span>Rentang akurasi pengenalan wajah</span>
+          <span>Rentang Akurasi Pengenalan Wajah</span>
           <span className="font-mono text-ink">{threshold.toFixed(2)}</span>
         </span>
         <input
